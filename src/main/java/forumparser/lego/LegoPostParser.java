@@ -18,9 +18,6 @@ import forumparser.model.Post;
 public class LegoPostParser implements PostParser {
 
 
-  private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("'Posted:' dd MMM yyyy - hh:mmaa");
-
-
   public Post parsePost(String data) throws Exception {
     Post post = new Post();
 
@@ -50,6 +47,8 @@ public class LegoPostParser implements PostParser {
         }
       }
     }
+
+    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("'Posted:' dd MMM yyyy - hh:mmaa");
 
     post.username = tagWithUsername.text();
     post.content = content.toString().trim().replaceAll("\n", "");

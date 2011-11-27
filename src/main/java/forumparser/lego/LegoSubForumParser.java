@@ -5,6 +5,10 @@ package forumparser.lego;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityTransaction;
@@ -25,11 +29,33 @@ import forumparser.util.HttpDataProvider;
 public class LegoSubForumParser implements SubForumParser {
 
 
-  private final static String HEAD_TITLE_PREFIX = "LEGO.com  Messageboards Forum : ";
+  private static class TopicFetcherCallable implements Callable<Topic> {
 
-  private String              baseUrl           = null;
-  private TopicParser         topicParser       = null;
-  private HttpDataProvider    httpDataProvider  = new HttpDataProvider();
+
+    private String      url;
+    private TopicParser topicParser;
+
+
+    public TopicFetcherCallable(String url, TopicParser topicParser) {
+      this.url = url;
+      this.topicParser = topicParser;
+    }
+
+
+    public Topic call() throws Exception {
+      String topicData = httpDataProvider.downloadData(url);
+      Topic topic = topicParser.parseTopic(topicData);
+      return topic;
+    }
+  }
+
+  private final static String     HEAD_TITLE_PREFIX = "LEGO.com  Messageboards Forum : ";
+
+  private static HttpDataProvider httpDataProvider  = new HttpDataProvider();
+  private static ExecutorService  executorService   = Executors.newFixedThreadPool(8);
+
+  private String                  baseUrl           = null;
+  private TopicParser             topicParser       = null;
 
 
   public LegoSubForumParser(String baseUrl) {
@@ -62,17 +88,30 @@ public class LegoSubForumParser implements SubForumParser {
     Elements elements = document.select("span.txt2BoldB > a");
 
     List<Topic> topicList = new ArrayList<Topic>();
+    List<Future<Topic>> futureList = new ArrayList<Future<Topic>>();
 
     for (Element element : elements) {
       String href = element.attr("href").trim();
 
       if (href.contains("ShowPost.aspx")) {
-        System.out.println("Generate topics from " + baseUrl + href);
-        String topicData = httpDataProvider.downloadData(baseUrl + href);
-        Topic topic = topicParser.parseTopic(topicData);
-
-        topicList.add(topic);
+        // System.out.println("Generate topics from " + baseUrl + href);
+        Future<Topic> future = executorService.submit(new TopicFetcherCallable(baseUrl + href, topicParser));
+        futureList.add(future);
+        // String topicData = httpDataProvider.downloadData(baseUrl + href);
+        // Topic topic = topicParser.parseTopic(topicData);
+        //
+        // topicList.add(topic);
       }
+    }
+
+    System.out.println("# of submitted callables: " + futureList.size());
+
+    int counter = 0;
+    for (Future<Topic> future : futureList) {
+      Topic topic = future.get();
+      System.out.println(String.format("#%d future returned.", Integer.valueOf(counter)));
+      topicList.add(topic);
+      counter++;
     }
 
     Element tagWithNextLink = document.select("a:contains(next »)").first();

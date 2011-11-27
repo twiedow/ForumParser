@@ -89,10 +89,10 @@ public class LegoTopicParser implements TopicParser {
     Topic topic = legoTopicParser.parseTopic(data);
     System.out.println(topic);
 
-//    EntityManager entityManager = Persistence.createEntityManagerFactory("forum_unit").createEntityManager();
-//    EntityTransaction entityTransaction = entityManager.getTransaction();
-//    entityTransaction.begin();
-//    entityManager.persist(topic);
-//    entityTransaction.commit();
+    EntityManager entityManager = Persistence.createEntityManagerFactory("forum_unit").createEntityManager();
+    EntityTransaction entityTransaction = entityManager.getTransaction();
+    entityTransaction.begin();
+    entityManager.persist(topic);
+    entityTransaction.commit();
   }
 }

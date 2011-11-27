@@ -4,9 +4,9 @@
   <session-factory>
     <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
     <property name="hibernate.hbm2ddl.auto">create-drop</property>
-    <property name="hibernate.connection.url">jdbc:mysql://192.168.100.101:3306/condor</property>
-    <property name="hibernate.connection.username">parser</property>
-    <property name="hibernate.connection.password">P4rs3r#</property>
+    <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/condor</property>
+    <property name="hibernate.connection.username">root</property>
+    <property name="hibernate.connection.password">root</property>
     <property name="hibernate.dialect">org.hibernate.dialect.MySQLDialect</property>
     <property name="show_sql">true</property>
   </session-factory>
