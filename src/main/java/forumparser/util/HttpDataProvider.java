@@ -18,6 +18,9 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 
+import forumparser.model.WebPage;
+import forumparser.persistence.WebPageDAO;
+
 
 public class HttpDataProvider {
 
@@ -59,7 +62,7 @@ public class HttpDataProvider {
 
 
   public HttpDataProvider() {
-    this.useProxy = false;
+    this(false);
   }
 
 
@@ -69,6 +72,13 @@ public class HttpDataProvider {
 
 
   public String downloadData(String url) throws Exception {
+    WebPage webPage = WebPageDAO.findByUrl(url);
+
+    if (webPage != null) {
+      System.out.println(String.format("Returning content for url %s from cache.", url));
+      return webPage.data;
+    }
+
     HttpClient httpClient = null;
     String response = null;
 
@@ -92,6 +102,13 @@ public class HttpDataProvider {
       if (httpClient != null)
         httpClient.getConnectionManager().shutdown();
     }
+
+    System.out.println(String.format("Returning downloaded content for url %s.", url));
+
+    webPage = new WebPage();
+    webPage.url = url;
+    webPage.data = response;
+    WebPageDAO.persist(webPage);
 
     return response;
   }

@@ -1,24 +1,21 @@
 
 
-package forumparser.lego;
+package forumparser.parser.lego;
 
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import forumparser.PostParser;
-import forumparser.TopicParser;
 import forumparser.model.Post;
 import forumparser.model.Topic;
+import forumparser.parser.PostParser;
+import forumparser.parser.TopicParser;
+import forumparser.persistence.GenericDAO;
 import forumparser.util.HttpDataProvider;
 
 
@@ -28,12 +25,13 @@ public class LegoTopicParser implements TopicParser {
   private final static String HEAD_TITLE_PREFIX = "LEGO.com  Messageboards Post : ";
 
   private String              baseUrl           = null;
-  private HttpDataProvider    httpDataProvider  = new HttpDataProvider();
+  private HttpDataProvider    httpDataProvider  = null;
   private PostParser          postParser        = new LegoPostParser();
 
 
-  public LegoTopicParser(String baseUrl) {
+  public LegoTopicParser(String baseUrl, HttpDataProvider httpDataProvider) {
     this.baseUrl = baseUrl;
+    this.httpDataProvider = httpDataProvider;
   }
 
 
@@ -85,14 +83,10 @@ public class LegoTopicParser implements TopicParser {
     HttpDataProvider httpDataProvider = new HttpDataProvider();
     String data = httpDataProvider.downloadData("http://messageboards.lego.com/en-US/showpost.aspx?PostID=4564674");
 
-    LegoTopicParser legoTopicParser = new LegoTopicParser("http://messageboards.lego.com/en-US");
+    LegoTopicParser legoTopicParser = new LegoTopicParser("http://messageboards.lego.com/en-US", httpDataProvider);
     Topic topic = legoTopicParser.parseTopic(data);
     System.out.println(topic);
 
-    EntityManager entityManager = Persistence.createEntityManagerFactory("forum_unit").createEntityManager();
-    EntityTransaction entityTransaction = entityManager.getTransaction();
-    entityTransaction.begin();
-    entityManager.persist(topic);
-    entityTransaction.commit();
+    GenericDAO.persist(topic);
   }
 }

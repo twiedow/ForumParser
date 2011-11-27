@@ -1,24 +1,23 @@
 
 
-package forumparser.lego;
+package forumparser.parser.lego;
 
 
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.persistence.EntityManager;
-import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import forumparser.ForumParser;
-import forumparser.SubForumParser;
 import forumparser.model.Forum;
 import forumparser.model.SubForum;
+import forumparser.parser.ForumParser;
+import forumparser.parser.SubForumParser;
+import forumparser.persistence.GenericDAO;
 import forumparser.util.HttpDataProvider;
 
 
@@ -27,12 +26,13 @@ public class LegoForumParser implements ForumParser {
 
   private String           baseUrl          = null;
   private SubForumParser   subForumParser   = null;
-  private HttpDataProvider httpDataProvider = new HttpDataProvider();
+  private HttpDataProvider httpDataProvider = null;
 
 
-  public LegoForumParser(String baseUrl) {
+  public LegoForumParser(String baseUrl, HttpDataProvider httpDataProvider, ExecutorService executorService) {
     this.baseUrl = baseUrl;
-    subForumParser = new LegoSubForumParser(baseUrl);
+    this.httpDataProvider = httpDataProvider;
+    subForumParser = new LegoSubForumParser(baseUrl, httpDataProvider, executorService);
   }
 
 
@@ -69,17 +69,25 @@ public class LegoForumParser implements ForumParser {
 
 
   public static void main(String[] args) throws Exception {
-    HttpDataProvider httpDataProvider = new HttpDataProvider();
-    String data = httpDataProvider.downloadData("http://messageboards.lego.com/");
+    ExecutorService executorService = null;
 
-    LegoForumParser legoForumParser = new LegoForumParser("http://messageboards.lego.com/en-US");
-    Forum forum = legoForumParser.parseForum(data);
-    System.out.println(forum);
+    try {
+      executorService = Executors.newFixedThreadPool(8);
 
-    EntityManager entityManager = Persistence.createEntityManagerFactory("forum_unit").createEntityManager();
-    EntityTransaction entityTransaction = entityManager.getTransaction();
-    entityTransaction.begin();
-    entityManager.persist(forum);
-    entityTransaction.commit();
+      HttpDataProvider httpDataProvider = new HttpDataProvider();
+      String data = httpDataProvider.downloadData("http://messageboards.lego.com/");
+
+      LegoForumParser legoForumParser = new LegoForumParser("http://messageboards.lego.com/en-US", httpDataProvider, executorService);
+      Forum forum = legoForumParser.parseForum(data);
+      System.out.println(forum);
+
+      GenericDAO.persist(forum);
+
+      executorService.shutdown();
+    }
+    finally {
+      if (executorService != null)
+        executorService.shutdown();
+    }
   }
 }

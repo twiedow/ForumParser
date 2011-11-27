@@ -1,6 +1,6 @@
 
 
-package forumparser.lego;
+package forumparser.parser.lego;
 
 
 import java.text.SimpleDateFormat;
@@ -11,8 +11,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 
-import forumparser.PostParser;
 import forumparser.model.Post;
+import forumparser.parser.PostParser;
 
 
 public class LegoPostParser implements PostParser {

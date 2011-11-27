@@ -1,6 +1,6 @@
 
 
-package forumparser;
+package forumparser.parser;
 
 
 import forumparser.model.Post;

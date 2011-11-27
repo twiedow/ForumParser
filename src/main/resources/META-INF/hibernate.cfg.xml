@@ -3,7 +3,7 @@
 <hibernate-configuration>
   <session-factory>
     <property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
-    <property name="hibernate.hbm2ddl.auto">create-drop</property>
+    <property name="hibernate.hbm2ddl.auto">validate</property>
     <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/condor</property>
     <property name="hibernate.connection.username">root</property>
     <property name="hibernate.connection.password">root</property>
